@@ -1,3 +1,18 @@
+# Meighan's Watch Talk Website
+Personal blog for my good friend Meighan. Astro + Sanity (headless CMS) + Vercel.
+Design source of truth: Figma file https://www.figma.com/make/gPbZO8Fw13R0Cke8lgSSji/Creative-Writing-Website?p=f. Match it exactly — spacing, type scale, colors, easing.
+
+# Stack decisions
+- Astro with <ClientRouter /> for page transitions
+- Sanity for content (posts: title, slug, cover image, body as Portable Text, publishedAt)
+- Plain CSS with custom properties; no Tailwind
+- GSAP only for the article-open animation; marquee is pure CSS
+- Respect prefers-reduced-motion everywhere
+
+# Conventions
+- Mobile-first, semantic HTML, no layout shift on font load
+- Fonts: [names], self-hosted woff2 in /public/fonts
+
 ## Development
 
 When starting the dev server, use background mode:
