@@ -4,6 +4,13 @@ dist/
 # generated types
 .astro/
 
+# sanity studio build artifacts
+.sanity/
+schema.json
+
+# figma make export — design reference only, not part of the build
+reference/
+
 # dependencies
 node_modules/
 

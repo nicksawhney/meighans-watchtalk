@@ -1,23 +1,65 @@
+---
+import { ClientRouter } from 'astro:transitions';
+
+import Masthead from '../components/Masthead.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Ticker from '../components/Ticker.astro';
+import type { NavKey } from '../sanity/lib/queries';
+
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description?: string;
+	active: NavKey;
+}
+
+const {
+	title,
+	description = 'A journal of watches, makers, and the people who love them.',
+	active,
+} = Astro.props;
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+
+		{/* Preloaded so the first paint already has them — swap flash is the
+		    main source of layout shift on a type-led design like this. */}
+		<link
+			rel="preload"
+			href="/fonts/playfair-var.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/baskerville-var.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link rel="preload" href="/fonts/courier-400.woff2" as="font" type="font/woff2" crossorigin />
+
+		<ClientRouter />
 	</head>
-	<body>
+	<body class="paper-texture">
+		<Ticker />
+		<Masthead active={active} />
 		<slot />
+		<SiteFooter />
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
