@@ -1,0 +1,156 @@
+---
+import { SECTION_LABELS, type Section } from '../sanity/lib/queries';
+
+const sections = Object.keys(SECTION_LABELS) as Section[];
+const year = new Date().getFullYear();
+
+// Replaces the prototype's "Publish" submissions page — a form that only
+// appended to local state and would have needed authenticated writes to mean
+// anything. A mailto does the same job honestly.
+const EMAIL = 'meighanjohnson24@gmail.com';
+---
+
+<footer class="footer">
+	<div class="footer__inner">
+		<div class="footer__grid">
+			<div>
+				<div class="footer__wordmark">Meighan's Watchtalk</div>
+				<p class="footer__blurb">
+					A journal of watches, makers, and the people who love them. Published whenever the
+					work demands it.
+				</p>
+			</div>
+
+			<div>
+				<div class="footer__heading">Sections</div>
+				<ul class="footer__list">
+					{
+						sections.map((s) => (
+							<li>
+								<a href={`/${s}`}>{SECTION_LABELS[s]}</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+
+			<div>
+				<div class="footer__heading">Get in touch</div>
+				<p class="footer__blurb">
+					Pitches, corrections, and strong opinions about movements are all welcome.
+				</p>
+				<a class="footer__mailto" href={`mailto:${EMAIL}`}>{EMAIL} →</a>
+			</div>
+		</div>
+
+		<div class="footer__baseline">
+			<span>© {year} Meighan's Watchtalk</span>
+			<span>All pieces the property of their authors</span>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		border-top: 4px solid var(--foreground);
+		margin-top: 4rem;
+	}
+
+	.footer__inner {
+		max-width: var(--shell);
+		margin: 0 auto;
+		padding: 2.5rem 1.5rem;
+	}
+
+	.footer__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+	}
+
+	.footer__wordmark {
+		font-family: var(--font-display);
+		font-weight: 900;
+		font-size: 1.5rem;
+		text-transform: uppercase;
+		margin-bottom: 0.5rem;
+	}
+
+	.footer__blurb {
+		margin: 0;
+		font-family: var(--font-body);
+		font-size: 0.875rem;
+		line-height: 1.7;
+		color: var(--muted-foreground);
+	}
+
+	.footer__heading {
+		margin-bottom: 0.75rem;
+		padding-bottom: 0.25rem;
+		border-bottom: 1px solid var(--border);
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	.footer__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.footer__list a {
+		display: inline-block;
+		padding: 0.15rem 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		text-decoration: none;
+		color: var(--muted-foreground);
+	}
+
+	.footer__list a:hover {
+		color: var(--primary);
+	}
+
+	.footer__mailto {
+		display: inline-block;
+		margin-top: 0.75rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: var(--primary);
+		text-decoration: none;
+		border-bottom: 2px solid var(--primary);
+		/* Long address on a narrow screen must break rather than overflow. */
+		word-break: break-all;
+	}
+
+	.footer__baseline {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 2rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border);
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		color: var(--border);
+	}
+
+	@media (max-width: 52rem) {
+		.footer__grid {
+			grid-template-columns: 1fr;
+			gap: 1.75rem;
+		}
+
+		.footer__baseline {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.35rem;
+		}
+	}
+</style>

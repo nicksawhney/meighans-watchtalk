@@ -1,0 +1,348 @@
+/* ==========================================================================
+   Meighan's Watchtalk — global design system
+   Ported from the Figma Make prototype (see reference/src/index.css).
+   Token names are kept identical to the Figma source so the two can be diffed.
+   ========================================================================== */
+
+/* --- Fonts -----------------------------------------------------------------
+   Self-hosted latin-subset woff2. Playfair and Baskerville are variable
+   (wght axes 400–900 and 400–700), so one file covers every weight; the
+   italics and Courier are static. */
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-var.woff2') format('woff2-variations');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url('/fonts/baskerville-var.woff2') format('woff2-variations');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url('/fonts/baskerville-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- Tokens --------------------------------------------------------------- */
+
+:root {
+  --background: #faf8f3;
+  --foreground: #1a160e;
+  --card: #f5f2e8;
+  --primary: #8b1a1a;
+  --primary-foreground: #faf8f3;
+  --secondary: #e8e4d6;
+  --muted: #d8d3c0;
+  --muted-foreground: #5c4a32;
+  --border: #b0a48a;
+  --radius: 0px;
+
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --font-mono: 'Courier Prime', 'Courier New', monospace;
+
+  /* The prototype's hard-coded Tailwind sizes, named. */
+  --text-label-xs: 0.5625rem; /* 9px  — section eyebrows */
+  --text-label-sm: 0.625rem; /* 10px — meta rows, nav */
+  --text-label-md: 0.6875rem; /* 11px — ticker, buttons */
+  --text-body-sm: 0.8125rem; /* 13px — card body */
+  --text-body-md: 0.875rem; /* 14px — article body */
+
+  --measure: 78ch;
+  --shell: 80rem;
+}
+
+/* --- Reset / base --------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Shared type helpers -------------------------------------------------- */
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-body {
+  font-family: var(--font-body);
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Small uppercase monospace label — used for every eyebrow and meta line. */
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label-sm);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* A horizontal rule with centred text, e.g. — TODAY'S EDITION — */
+.rule-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.rule-heading::before,
+.rule-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.stamp-label {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-1.5deg);
+}
+
+/* --- Paper texture -------------------------------------------------------- */
+
+.paper-texture {
+  position: relative;
+}
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Both filters carry an explicit region (x/y 0%, width/height 100%). Without
+     it the region defaults to -10%/120%, which misaligns stitchTiles="stitch"
+     with the tile and leaves a pale seam every 300px and 400px — most visible
+     on the profile page, where no card or article box covers the background. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='grain' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeBlend in='SourceGraphic' mode='multiply'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23grain)' opacity='0.09'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='fiber' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.012 0.6' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23fiber)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Article prose -------------------------------------------------------- */
+
+.prose p {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: 1.75;
+  margin: 0 0 1.25rem;
+}
+
+.prose h2,
+.prose h3 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  margin: 2rem 0 0.75rem;
+}
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.prose h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.prose blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--primary);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.prose ul,
+.prose ol {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: 1.75;
+  padding-left: 1.4rem;
+  margin: 0 0 1.25rem;
+}
+
+/* Drop cap on the opening paragraph only. */
+.prose > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 4.5em;
+  font-weight: 900;
+  line-height: 0.8;
+  margin-right: 0.08em;
+  margin-top: 0.05em;
+  color: var(--foreground);
+}
+
+/* --- Animations ----------------------------------------------------------- */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes inkSpread {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes tickerScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease both;
+}
+
+.animate-ink-spread {
+  animation: inkSpread 0.5s ease both;
+}
+
+/* --- Reduced motion --------------------------------------------------------
+   The Figma prototype has no motion guards at all. Everything decorative is
+   switched off here; content must still end up at its final opacity, so these
+   are reset to `none` rather than merely shortened. */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in-up,
+  .animate-ink-spread {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}

@@ -1,0 +1,168 @@
+---
+import { PortableText } from 'astro-portabletext';
+
+import PortableImage from '../components/PortableImage.astro';
+import Layout from '../layouts/Layout.astro';
+import { plainTextExcerpt } from '../lib/format';
+import { urlFor } from '../sanity/lib/image';
+import { getProfile } from '../sanity/lib/queries';
+
+const profile = await getProfile();
+
+const portrait = profile?.portrait?.asset
+	? urlFor(profile.portrait).width(720).height(720).fit('crop').auto('format').url()
+	: null;
+
+const description = plainTextExcerpt(profile?.tagline, 160) ?? undefined;
+const components = { type: { image: PortableImage } };
+---
+
+<Layout title={`Profile — Meighan's Watchtalk`} description={description} active="profile">
+	<main class="profile">
+		<div class="rule-heading profile__kicker">
+			<span class="label">About the writer</span>
+		</div>
+
+		{
+			!profile ? (
+				<p class="profile__empty">The profile has not been published yet.</p>
+			) : (
+				<div class="profile__grid">
+					<aside class="profile__aside">
+						{portrait && (
+							<figure class="profile__portrait">
+								<img
+									src={portrait}
+									alt={profile.portrait?.alt ?? `Portrait of ${profile.name}`}
+									width="720"
+									height="720"
+									decoding="async"
+								/>
+							</figure>
+						)}
+						<div class="profile__stamp stamp-label">✦ Editor &amp; sole correspondent</div>
+					</aside>
+
+					<div class="profile__main">
+						<h1 class="profile__name">{profile.name}</h1>
+						{profile.tagline && <p class="profile__tagline">{profile.tagline}</p>}
+
+						<div class="profile__hr" />
+
+						{profile.body && (
+							<div class="prose profile__body">
+								<PortableText value={profile.body} components={components} />
+							</div>
+						)}
+					</div>
+				</div>
+			)
+		}
+	</main>
+</Layout>
+
+<style>
+	.profile {
+		position: relative;
+		z-index: 1;
+		max-width: 58rem;
+		margin: 0 auto;
+		padding: 2rem 1rem 0;
+	}
+
+	.profile__kicker {
+		margin-bottom: 1.75rem;
+	}
+
+	.profile__kicker .label {
+		letter-spacing: 0.4em;
+		font-size: var(--text-label-md);
+	}
+
+	.profile__empty {
+		padding: 5rem 0;
+		text-align: center;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 1.25rem;
+		color: var(--muted-foreground);
+	}
+
+	/* Portrait beside the text rather than a full-bleed cover above it — the
+	   point of difference from the article layout. */
+	.profile__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+		gap: 2.5rem;
+		align-items: start;
+	}
+
+	.profile__aside {
+		position: sticky;
+		top: 1.5rem;
+	}
+
+	.profile__portrait {
+		margin: 0 0 1rem;
+		border: 3px solid var(--foreground);
+		background: var(--muted);
+	}
+
+	.profile__portrait img {
+		width: 100%;
+		height: auto;
+		opacity: 0.9;
+		mix-blend-mode: multiply;
+	}
+
+	.profile__stamp {
+		font-size: var(--text-label-xs);
+	}
+
+	.profile__name {
+		margin: 0;
+		font-family: var(--font-display);
+		font-weight: 900;
+		font-size: clamp(2rem, 6vw, 3.25rem);
+		line-height: 1.05;
+		letter-spacing: -0.015em;
+	}
+
+	.profile__tagline {
+		margin: 0.5rem 0 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		letter-spacing: 0.25em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	.profile__hr {
+		margin: 1.25rem 0 1.5rem;
+		border-top: 4px solid var(--foreground);
+	}
+
+	/* No drop cap here — that flourish belongs to articles. */
+	.profile__body :global(p:first-of-type::first-letter) {
+		float: none;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: inherit;
+		margin: 0;
+	}
+
+	@media (max-width: 52rem) {
+		.profile__grid {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.profile__aside {
+			position: static;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			max-width: 18rem;
+		}
+	}
+</style>

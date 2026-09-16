@@ -1,0 +1,180 @@
+---
+import { SECTION_LABELS, profileExists, type NavKey, type Section } from '../sanity/lib/queries';
+
+interface Props {
+	/** Which nav item is lit — a section slug, 'all', or 'profile'. */
+	active: NavKey;
+}
+
+const { active } = Astro.props;
+
+const hasProfile = await profileExists();
+
+const today = new Date().toLocaleDateString('en-GB', {
+	weekday: 'long',
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+
+// The prototype had two stacked bars: page nav (Front Page / Portfolio /
+// Publish) and a section filter. With Portfolio and Publish gone there is only
+// one page, so the section filter takes over the nav slot rather than leaving
+// two near-identical bars. Each section is a real static route.
+const nav: { href: string; label: string; key: NavKey }[] = [
+	{ href: '/', label: 'All', key: 'all' },
+	...(Object.keys(SECTION_LABELS) as Section[]).map((s) => ({
+		href: `/${s}`,
+		label: SECTION_LABELS[s],
+		key: s as NavKey,
+	})),
+	// Hidden until the singleton is published, so the nav never points at an
+	// empty page.
+	...(hasProfile ? [{ href: '/profile', label: 'Profile', key: 'profile' as NavKey }] : []),
+];
+---
+
+<header class="masthead">
+	<div class="masthead__accent"></div>
+
+	<div class="masthead__meta">
+		<span class="label">Watch writing from the bench up</span>
+		<span class="label label--plain">{today}</span>
+		<span class="label">Price: one good idea</span>
+	</div>
+
+	<div class="masthead__title">
+		<a href="/" class="masthead__wordmark">Meighan's Watchtalk</a>
+		<div class="masthead__tagline">A journal of watches, makers &amp; the people who love them</div>
+		<div class="rule-heading masthead__motto">
+			<span>What&rsquo;s on the wrist?</span>
+		</div>
+	</div>
+
+	<nav class="masthead__nav" aria-label="Sections">
+		{
+			nav.map((item) => (
+				<a
+					href={item.href}
+					class:list={['masthead__navlink', { 'is-active': active === item.key }]}
+					aria-current={active === item.key ? 'page' : undefined}
+				>
+					{item.label}
+				</a>
+			))
+		}
+	</nav>
+</header>
+
+<style>
+	.masthead {
+		border-bottom: 4px solid var(--foreground);
+	}
+
+	.masthead__accent {
+		border-top: 2px solid var(--primary);
+	}
+
+	.masthead__meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.5rem 1.5rem 0.25rem;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.label--plain {
+		letter-spacing: 0.03em;
+		text-transform: none;
+	}
+
+	.masthead__title {
+		padding: 1rem 1.5rem;
+		text-align: center;
+		border-bottom: 2px solid var(--foreground);
+	}
+
+	.masthead__wordmark {
+		display: block;
+		font-family: var(--font-display);
+		font-weight: 900;
+		/* Three words rather than the prototype's two, so the upper bound is
+		   pulled back from 7rem to keep it on one line on a laptop. */
+		font-size: clamp(2.25rem, 8.5vw, 5.5rem);
+		line-height: 1;
+		letter-spacing: -0.02em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--foreground);
+	}
+
+	.masthead__tagline {
+		margin-top: 0.4rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		letter-spacing: 0.32em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	.masthead__motto {
+		margin-top: 0.75rem;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+	}
+
+	.masthead__nav {
+		display: flex;
+		justify-content: center;
+		overflow-x: auto;
+	}
+
+	.masthead__navlink {
+		padding: 0.5rem 1.5rem;
+		border-right: 1px solid var(--border);
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		white-space: nowrap;
+		color: var(--foreground);
+		transition: background-color 0.2s ease;
+	}
+
+	.masthead__navlink:last-child {
+		border-right: 0;
+	}
+
+	.masthead__navlink:hover {
+		background: rgb(26 22 14 / 0.08);
+	}
+
+	.masthead__navlink.is-active {
+		background: var(--foreground);
+		color: var(--background);
+	}
+
+	@media (max-width: 40rem) {
+		.masthead__meta {
+			flex-direction: column;
+			gap: 0.15rem;
+			text-align: center;
+		}
+
+		.masthead__tagline {
+			letter-spacing: 0.2em;
+		}
+
+		.masthead__motto {
+			font-size: 0.8125rem;
+		}
+
+		.masthead__navlink {
+			padding: 0.5rem 1rem;
+		}
+	}
+</style>

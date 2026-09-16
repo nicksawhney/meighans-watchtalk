@@ -1,0 +1,27 @@
+---
+import FrontPage from '../components/FrontPage.astro';
+import Layout from '../layouts/Layout.astro';
+import { SECTION_LABELS, getPosts, type Section } from '../sanity/lib/queries';
+
+// Section pages are real static routes rather than a client-side filter: they
+// survive with JS off, give each section a linkable URL, and let the lead-post
+// logic run per section instead of being recomputed in the browser.
+export async function getStaticPaths() {
+	return (Object.keys(SECTION_LABELS) as Section[]).map((section) => ({
+		params: { section },
+	}));
+}
+
+const section = Astro.params.section as Section;
+const label = SECTION_LABELS[section];
+
+const posts = (await getPosts()).filter((post) => post.section === section);
+---
+
+<Layout
+	title={`${label} — Meighan's Watchtalk`}
+	description={`${label} from Meighan's Watchtalk.`}
+	active={section}
+>
+	<FrontPage posts={posts} heading={label} />
+</Layout>

@@ -1,0 +1,129 @@
+---
+import ArticleCard from './ArticleCard.astro';
+import type { PostSummary } from '../sanity/lib/queries';
+
+interface Props {
+	posts: PostSummary[];
+	/** Shown above the grid, e.g. "Today's Edition" or "Interviews". */
+	heading: string;
+	emptyMessage?: string;
+}
+
+const { posts, heading, emptyMessage = 'No dispatches in this section yet.' } = Astro.props;
+
+// Posts arrive already sorted (featured first, then newest), so the lead is
+// simply the head of the list — no second pass needed.
+const [lead, ...rest] = posts;
+const column = rest.slice(0, 3);
+const tail = rest.slice(3);
+---
+
+<main class="front">
+	<div class="rule-heading front__heading">
+		<span class="label">{heading}</span>
+	</div>
+
+	{
+		posts.length === 0 ? (
+			<p class="front__empty">{emptyMessage}</p>
+		) : (
+			<div class="front__grid">
+				{lead && (
+					<div class="front__lead">
+						<ArticleCard post={lead} size="featured" excerpt={lead.excerpt} delay={0} />
+					</div>
+				)}
+
+				{column.length > 0 && (
+					<div class="front__column">
+						{column.map((post, i) => (
+							<ArticleCard
+								post={post}
+								size="normal"
+								excerpt={post.excerpt}
+								delay={0.05 * (i + 1)}
+							/>
+						))}
+					</div>
+				)}
+
+				{tail.map((post, i) => (
+					<ArticleCard post={post} size="small" excerpt={post.excerpt} delay={0.05 * (i + 4)} />
+				))}
+			</div>
+		)
+	}
+</main>
+
+<style>
+	.front {
+		position: relative;
+		z-index: 1;
+		max-width: var(--shell);
+		margin: 0 auto;
+		padding: 1.5rem 1rem;
+	}
+
+	.front__heading {
+		margin-bottom: 1.25rem;
+	}
+
+	.front__heading .label {
+		letter-spacing: 0.4em;
+		font-size: var(--text-label-md);
+	}
+
+	.front__empty {
+		padding: 5rem 0;
+		text-align: center;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 1.25rem;
+		color: var(--muted-foreground);
+	}
+
+	.front__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		align-items: start;
+	}
+
+	.front__lead {
+		grid-column: span 2;
+	}
+
+	.front__column {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	@media (max-width: 64rem) {
+		.front__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.front__lead {
+			grid-column: span 2;
+		}
+
+		.front__column {
+			grid-column: span 2;
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 40rem) {
+		.front__grid,
+		.front__column {
+			grid-template-columns: 1fr;
+		}
+
+		.front__lead,
+		.front__column {
+			grid-column: span 1;
+		}
+	}
+</style>

@@ -1,0 +1,82 @@
+---
+// Quotes from and about Meighan. Edit this list to change the ticker.
+// The array is duplicated below so the -50% scroll loops seamlessly.
+const QUOTES = [
+	'The Sabrina Carpenter of Watches',
+	'After three years in the industry, you sound like you know your stuff.',
+	'She has a lot of tattoos, which is uncommon in the Swiss watch industry',
+];
+
+const loop = [...QUOTES, ...QUOTES];
+---
+
+<div class="ticker">
+	<span class="ticker__badge">✦ Word on the street</span>
+	<div class="ticker__window">
+		<div class="ticker__track">
+			{loop.map((quote) => <span class="ticker__item">&ldquo;{quote}&rdquo;</span>)}
+		</div>
+	</div>
+</div>
+
+<style>
+	.ticker {
+		display: flex;
+		align-items: center;
+		background: var(--foreground);
+		color: var(--background);
+		padding: 0.375rem 0;
+		overflow: hidden;
+	}
+
+	.ticker__badge {
+		flex-shrink: 0;
+		background: var(--primary);
+		padding: 0.125rem 0.75rem;
+		margin-right: 0.75rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		font-weight: 700;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.ticker__window {
+		flex: 1;
+		overflow: hidden;
+	}
+
+	.ticker__track {
+		display: flex;
+		width: max-content;
+		animation: tickerScroll 45s linear infinite;
+	}
+
+	.ticker__item {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		font-style: italic;
+		letter-spacing: 0.03em;
+		white-space: nowrap;
+		padding-right: 4rem;
+	}
+
+	/* A perpetually moving marquee is the most distracting thing on the page,
+	   so reduced-motion users get a single static quote instead. */
+	@media (prefers-reduced-motion: reduce) {
+		.ticker__track {
+			animation: none;
+			width: 100%;
+		}
+
+		.ticker__item {
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.ticker__item:not(:first-child) {
+			display: none;
+		}
+	}
+</style>

@@ -1,0 +1,229 @@
+---
+import { PortableText } from 'astro-portabletext';
+
+import PortableImage from '../../components/PortableImage.astro';
+import Layout from '../../layouts/Layout.astro';
+import { formatDate, plainTextExcerpt } from '../../lib/format';
+import { urlFor } from '../../sanity/lib/image';
+import { SECTION_LABELS, getPost, getPosts } from '../../sanity/lib/queries';
+
+export async function getStaticPaths() {
+	const posts = await getPosts();
+	return posts.map((post) => ({ params: { slug: post.slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await getPost(slug!);
+
+// getStaticPaths only emits slugs that exist, so this is a build-time invariant.
+if (!post) throw new Error(`No post found for slug "${slug}"`);
+
+const cover = post.coverImage?.asset
+	? urlFor(post.coverImage).width(1600).height(900).fit('crop').auto('format').url()
+	: null;
+
+const description = plainTextExcerpt(post.subheadline ?? post.excerpt, 160) ?? undefined;
+const components = { type: { image: PortableImage } };
+---
+
+<Layout title={`${post.title} — Meighan's Watchtalk`} description={description} active={post.section}>
+	<main class="article-shell">
+		<article class="article" data-article>
+			<div class="article__eyebrow">
+				<span class="article__section">
+					{SECTION_LABELS[post.section]} · {formatDate(post.publishedAt)}
+				</span>
+				<a class="article__back" href={`/${post.section}`}>← Back</a>
+			</div>
+
+			<header class="article__header">
+				<h1 class="article__title">{post.title}</h1>
+				{post.subheadline && <p class="article__sub">{post.subheadline}</p>}
+			</header>
+
+			<div class="article__byline">
+				<span>By {post.byline}</span>
+				<span aria-hidden="true">·</span>
+				<time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+			</div>
+
+			{
+				cover && (
+					<figure class="article__cover">
+						<img
+							src={cover}
+							alt={post.coverImage?.alt ?? ''}
+							width="1600"
+							height="900"
+							decoding="async"
+						/>
+						{post.coverImage?.alt && <figcaption>{post.coverImage.alt}</figcaption>}
+					</figure>
+				)
+			}
+
+			{
+				post.body && (
+					<div class="prose">
+						<PortableText value={post.body} components={components} />
+					</div>
+				)
+			}
+
+			<footer class="article__end">
+				<span class="label">— End of dispatch —</span>
+			</footer>
+		</article>
+	</main>
+</Layout>
+
+<script>
+	import gsap from 'gsap';
+
+	// The prototype opened articles in a modal with a `paperFold` keyframe.
+	// Here the article is a real route, so that same motion becomes the
+	// page-open animation. Re-run on astro:page-load because ClientRouter
+	// swaps the document without a full navigation.
+	function playArticleOpen() {
+		const article = document.querySelector<HTMLElement>('[data-article]');
+		if (!article) return;
+
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			gsap.set(article, { clearProps: 'all' });
+			return;
+		}
+
+		gsap.fromTo(
+			article,
+			{ opacity: 0, rotateX: -8, y: -10, transformPerspective: 800 },
+			{ opacity: 1, rotateX: 0, y: 0, duration: 0.7, ease: 'expo.out', clearProps: 'transform' },
+		);
+	}
+
+	playArticleOpen();
+	document.addEventListener('astro:page-load', playArticleOpen);
+</script>
+
+<style>
+	.article-shell {
+		position: relative;
+		z-index: 1;
+		max-width: 46rem;
+		margin: 0 auto;
+		padding: 2.5rem 1rem 0;
+	}
+
+	.article {
+		background: var(--background);
+		border: 4px solid var(--foreground);
+		padding: 2rem;
+	}
+
+	.article__eyebrow {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.article__section {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		font-weight: 700;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: var(--primary);
+	}
+
+	.article__back {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--muted-foreground);
+		white-space: nowrap;
+	}
+
+	.article__back:hover {
+		color: var(--primary);
+	}
+
+	.article__header {
+		padding: 0.75rem 0;
+		border-top: 4px solid var(--foreground);
+		border-bottom: 2px solid var(--border);
+		margin-bottom: 1rem;
+	}
+
+	.article__title {
+		margin: 0 0 0.5rem;
+		font-family: var(--font-display);
+		font-weight: 900;
+		/* Titles here run 23–94 characters, so this scales rather than sitting
+		   at a fixed 3xl the way the prototype's short fake headlines did. */
+		font-size: clamp(1.75rem, 5vw, 2.5rem);
+		line-height: 1.15;
+	}
+
+	.article__sub {
+		margin: 0;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 1.125rem;
+		line-height: 1.4;
+		color: var(--muted-foreground);
+	}
+
+	.article__byline {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		color: var(--muted-foreground);
+	}
+
+	.article__cover {
+		margin: 0 0 1.5rem;
+	}
+
+	.article__cover img {
+		width: 100%;
+		height: auto;
+		background: var(--muted);
+		opacity: 0.85;
+		mix-blend-mode: multiply;
+	}
+
+	.article__cover figcaption {
+		margin-top: 0.5rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		color: var(--muted-foreground);
+	}
+
+	.article__end {
+		margin-top: 2rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border);
+		text-align: center;
+	}
+
+	.article__end .label {
+		letter-spacing: 0.3em;
+	}
+
+	@media (max-width: 40rem) {
+		.article-shell {
+			padding: 1.5rem 0.75rem 0;
+		}
+
+		.article {
+			padding: 1.25rem;
+			border-width: 3px;
+		}
+	}
+</style>

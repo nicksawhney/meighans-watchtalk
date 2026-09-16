@@ -1,0 +1,235 @@
+---
+import { urlFor } from '../sanity/lib/image';
+import { SECTION_LABELS, type PostSummary } from '../sanity/lib/queries';
+import { formatDate, plainTextExcerpt } from '../lib/format';
+
+interface Props {
+	post: PostSummary;
+	size?: 'featured' | 'normal' | 'small';
+	delay?: number;
+	/** Excerpt text, already flattened out of Portable Text by the caller. */
+	excerpt?: string | null;
+}
+
+const { post, size = 'normal', delay = 0, excerpt = null } = Astro.props;
+
+const cover =
+	size === 'featured' && post.coverImage?.asset
+		? urlFor(post.coverImage).width(800).height(400).fit('crop').auto('format').url()
+		: null;
+
+const summary = plainTextExcerpt(excerpt, size === 'featured' ? 300 : 150);
+const href = `/posts/${post.slug}`;
+---
+
+<article
+	class:list={['card', `card--${size}`, 'animate-ink-spread']}
+	style={`animation-delay: ${delay}s`}
+>
+	<div class="card__eyebrow">
+		<span class="card__section">{SECTION_LABELS[post.section]}</span>
+		<time class="card__date" datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+	</div>
+
+	{
+		cover && (
+			<div class="card__media">
+				<img
+					src={cover}
+					alt={post.coverImage?.alt ?? ''}
+					width="800"
+					height="400"
+					loading="eager"
+					decoding="async"
+				/>
+			</div>
+		)
+	}
+
+	<div class="card__hr"></div>
+
+	<h2 class="card__title">
+		<a href={href}>{post.title}</a>
+	</h2>
+
+	{size !== 'small' && post.subheadline && <p class="card__sub">{post.subheadline}</p>}
+
+	{
+		summary && (
+			<div class="card__body">
+				<p>{summary}</p>
+			</div>
+		)
+	}
+
+	<div class="card__footer">
+		<span class="card__byline">By {post.byline}</span>
+		<span class="card__more" aria-hidden="true">Read more →</span>
+	</div>
+</article>
+
+<style>
+	.card {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		padding: 1rem;
+		background: var(--card);
+		border: 1px solid var(--border);
+		transition:
+			box-shadow 0.25s ease,
+			transform 0.25s ease;
+	}
+
+	/* The whole card is clickable via the stretched title link, so lift on
+	   hover *and* on keyboard focus within — hover alone strands keyboard users. */
+	.card:hover,
+	.card:focus-within {
+		box-shadow: 4px 4px 0 #1c1612;
+		transform: translate(-2px, -2px);
+	}
+
+	.card__eyebrow {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.card__section {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-xs);
+		font-weight: 700;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: var(--primary);
+	}
+
+	.card__date {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-xs);
+		color: var(--muted-foreground);
+	}
+
+	.card__media {
+		margin-bottom: 0.75rem;
+		height: 200px;
+		overflow: hidden;
+		background: var(--muted);
+	}
+
+	.card__media img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0.8;
+		mix-blend-mode: multiply;
+		transition: transform 0.5s ease;
+	}
+
+	.card:hover .card__media img {
+		transform: scale(1.05);
+	}
+
+	.card__hr {
+		border-top: 2px solid var(--foreground);
+		margin-bottom: 0.5rem;
+	}
+
+	.card__title {
+		margin: 0 0 0.25rem;
+		font-family: var(--font-display);
+		font-weight: 700;
+		line-height: 1.2;
+		font-size: 1.125rem;
+	}
+
+	.card--featured .card__title {
+		font-size: 1.5rem;
+	}
+
+	.card--small .card__title {
+		font-size: 1rem;
+	}
+
+	.card__title a {
+		text-decoration: none;
+	}
+
+	/* Stretch the title link over the card so the whole surface is a target
+	   without nesting interactive elements. */
+	.card__title a::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+
+	.card {
+		position: relative;
+	}
+
+	.card__sub {
+		margin: 0 0 0.5rem;
+		font-family: var(--font-body);
+		font-style: italic;
+		font-size: 0.875rem;
+		line-height: 1.4;
+		color: var(--muted-foreground);
+	}
+
+	.card__body {
+		margin-top: 0.5rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.card__body p {
+		margin: 0;
+		font-family: var(--font-body);
+		font-size: var(--text-body-sm);
+		line-height: 1.65;
+	}
+
+	.card--featured .card__body {
+		columns: 2;
+		column-gap: 2rem;
+		column-rule: 1px solid #8b7355;
+	}
+
+	.card__footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-top: auto;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.card__footer > * {
+		margin-top: 0.75rem;
+	}
+
+	.card__byline {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		font-style: italic;
+		color: var(--muted-foreground);
+	}
+
+	.card__more {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--primary);
+	}
+
+	@media (max-width: 40rem) {
+		.card--featured .card__body {
+			columns: 1;
+		}
+	}
+</style>
