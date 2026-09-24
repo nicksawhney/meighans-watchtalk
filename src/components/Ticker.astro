@@ -50,7 +50,8 @@ const loop = [...QUOTES, ...QUOTES];
 	.ticker__track {
 		display: flex;
 		width: max-content;
-		animation: tickerScroll 45s linear infinite;
+		/* Lower duration = faster scroll. 45s felt sluggish; 36s is ~20% quicker. */
+		animation: tickerScroll 36s linear infinite;
 	}
 
 	.ticker__item {
