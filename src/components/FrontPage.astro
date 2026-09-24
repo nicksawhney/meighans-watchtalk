@@ -14,8 +14,17 @@ const { posts, heading, emptyMessage = 'No dispatches in this section yet.' } = 
 // Posts arrive already sorted (featured first, then newest), so the lead is
 // simply the head of the list — no second pass needed.
 const [lead, ...rest] = posts;
-const column = rest.slice(0, 3);
-const tail = rest.slice(3);
+
+// A fixed 3-up bottom row strands empty cells at small post counts, so small
+// sets go entirely into the side column and only larger sets spill into a tail
+// row. The tail then auto-fits, so it fills its row whatever the count.
+const SIDEBAR_MAX = 3;
+const spillsOver = rest.length > SIDEBAR_MAX;
+const column = spillsOver ? rest.slice(0, 2) : rest;
+const tail = spillsOver ? rest.slice(2) : [];
+
+// With nothing beside it, the lead would leave a third of the row blank.
+const leadIsFullWidth = column.length === 0;
 ---
 
 <main class="front">
@@ -29,7 +38,7 @@ const tail = rest.slice(3);
 		) : (
 			<div class="front__grid">
 				{lead && (
-					<div class="front__lead">
+					<div class:list={['front__lead', { 'front__lead--full': leadIsFullWidth }]}>
 						<ArticleCard post={lead} size="featured" excerpt={lead.excerpt} delay={0} />
 					</div>
 				)}
@@ -47,9 +56,18 @@ const tail = rest.slice(3);
 					</div>
 				)}
 
-				{tail.map((post, i) => (
-					<ArticleCard post={post} size="small" excerpt={post.excerpt} delay={0.05 * (i + 4)} />
-				))}
+				{tail.length > 0 && (
+					<div class="front__tail">
+						{tail.map((post, i) => (
+							<ArticleCard
+								post={post}
+								size="small"
+								excerpt={post.excerpt}
+								delay={0.05 * (i + 3)}
+							/>
+						))}
+					</div>
+				)}
 			</div>
 		)
 	}
@@ -93,10 +111,26 @@ const tail = rest.slice(3);
 		grid-column: span 2;
 	}
 
+	/* Sole post on a section page — span everything rather than leaving a
+	   third of the row blank. */
+	.front__lead--full {
+		grid-column: 1 / -1;
+	}
+
 	.front__column {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+	}
+
+	/* Spans the full width and auto-fits, so the bottom row fills itself
+	   whatever the post count instead of stranding empty cells. */
+	.front__tail {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+		gap: 1rem;
+		align-items: start;
 	}
 
 	@media (max-width: 64rem) {
