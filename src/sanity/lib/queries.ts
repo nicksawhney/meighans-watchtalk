@@ -101,6 +101,20 @@ export function getProfile(): Promise<Profile | null> {
   return sanityClient.fetch<Profile | null>(PROFILE_QUERY)
 }
 
+const POST_SECTIONS_QUERY = defineQuery(`
+  *[_type == "post" && defined(slug.current)]{"section": coalesce(section, "opinions")}.section
+`)
+
+/**
+ * Sections that currently hold at least one post. The nav uses this to hide
+ * tabs that would only lead to an empty state; a tab reappears by itself once
+ * something is published into it.
+ */
+export async function sectionsWithPosts(): Promise<Set<Section>> {
+  const sections = await sanityClient.fetch<Section[]>(POST_SECTIONS_QUERY)
+  return new Set(sections)
+}
+
 const PROFILE_EXISTS_QUERY = defineQuery(`defined(*[_id == "profile"][0]._id)`)
 
 /**

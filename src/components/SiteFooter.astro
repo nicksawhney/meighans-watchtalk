@@ -1,13 +1,13 @@
 ---
-import { SECTION_LABELS, type Section } from '../sanity/lib/queries';
+import { SECTION_LABELS, sectionsWithPosts, type Section } from '../sanity/lib/queries';
 
-const sections = Object.keys(SECTION_LABELS) as Section[];
+import { CONTACT_EMAIL } from '../lib/site';
+
+// Contact appears both here and as the masthead CTA — same address, one
+// constant. Empty sections are filtered out here too, matching the nav.
+const liveSections = await sectionsWithPosts();
+const sections = (Object.keys(SECTION_LABELS) as Section[]).filter((s) => liveSections.has(s));
 const year = new Date().getFullYear();
-
-// Replaces the prototype's "Publish" submissions page — a form that only
-// appended to local state and would have needed authenticated writes to mean
-// anything. A mailto does the same job honestly.
-const EMAIL = 'meighanjohnson24@gmail.com';
 ---
 
 <footer class="footer">
@@ -39,7 +39,7 @@ const EMAIL = 'meighanjohnson24@gmail.com';
 				<p class="footer__blurb">
 					Pitches, corrections, and strong opinions about movements are all welcome.
 				</p>
-				<a class="footer__mailto" href={`mailto:${EMAIL}`}>{EMAIL} →</a>
+				<a class="footer__mailto" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL} →</a>
 			</div>
 		</div>
 

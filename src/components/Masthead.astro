@@ -1,5 +1,13 @@
 ---
-import { SECTION_LABELS, profileExists, type NavKey, type Section } from '../sanity/lib/queries';
+import {
+	SECTION_LABELS,
+	profileExists,
+	sectionsWithPosts,
+	type NavKey,
+	type Section,
+} from '../sanity/lib/queries';
+
+import { CONTACT_EMAIL } from '../lib/site';
 
 interface Props {
 	/** Which nav item is lit — a section slug, 'all', or 'profile'. */
@@ -8,7 +16,7 @@ interface Props {
 
 const { active } = Astro.props;
 
-const hasProfile = await profileExists();
+const [hasProfile, liveSections] = await Promise.all([profileExists(), sectionsWithPosts()]);
 
 const today = new Date().toLocaleDateString('en-GB', {
 	weekday: 'long',
@@ -21,16 +29,22 @@ const today = new Date().toLocaleDateString('en-GB', {
 // Publish) and a section filter. With Portfolio and Publish gone there is only
 // one page, so the section filter takes over the nav slot rather than leaving
 // two near-identical bars. Each section is a real static route.
-const nav: { href: string; label: string; key: NavKey }[] = [
-	{ href: '/', label: 'All', key: 'all' },
-	...(Object.keys(SECTION_LABELS) as Section[]).map((s) => ({
-		href: `/${s}`,
-		label: SECTION_LABELS[s],
-		key: s as NavKey,
-	})),
-	// Hidden until the singleton is published, so the nav never points at an
-	// empty page.
-	...(hasProfile ? [{ href: '/profile', label: 'Profile', key: 'profile' as NavKey }] : []),
+const nav: { href: string; label: string; key?: NavKey }[] = [
+	{ href: '/', label: 'Home', key: 'all' },
+	// Sits beside Home rather than after the sections. Hidden until the
+	// singleton is published, so the nav never points at an empty page.
+	...(hasProfile ? [{ href: '/profile', label: 'About me', key: 'profile' as NavKey }] : []),
+	// Only sections with something in them. An empty section's route still
+	// builds, so its tab reappears on its own once a post lands there.
+	...(Object.keys(SECTION_LABELS) as Section[])
+		.filter((s) => liveSections.has(s))
+		.map((s) => ({
+			href: `/${s}`,
+			label: SECTION_LABELS[s],
+			key: s as NavKey,
+		})),
+	// Call to action. No key — a mailto is never the "current page".
+	{ href: `mailto:${CONTACT_EMAIL}`, label: 'Contact me' },
 ];
 ---
 
