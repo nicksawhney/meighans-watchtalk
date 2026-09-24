@@ -302,6 +302,19 @@ button {
   }
 }
 
+/* Ported from the Figma prototype, which used this for its article modal
+   (reference/src/index.css). The contact dialog is the only modal left. */
+@keyframes paperFold {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateX(-8deg) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateX(0deg) translateY(0);
+  }
+}
+
 @keyframes tickerScroll {
   from {
     transform: translateX(0);
@@ -317,6 +330,10 @@ button {
 
 .animate-ink-spread {
   animation: inkSpread 0.5s ease both;
+}
+
+.animate-paper-fold {
+  animation: paperFold 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* --- Reduced motion --------------------------------------------------------
@@ -339,7 +356,8 @@ button {
   }
 
   .animate-fade-in-up,
-  .animate-ink-spread {
+  .animate-ink-spread,
+  .animate-paper-fold {
     animation: none;
     opacity: 1;
     transform: none;

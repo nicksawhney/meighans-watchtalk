@@ -11,6 +11,11 @@ schema.json
 # figma make export — design reference only, not part of the build
 reference/
 
+# vendored agent skills — regenerate from skills-lock.json, which is committed
+.agents/
+.claude/skills/
+.claude/settings.local.json
+
 # dependencies
 node_modules/
 

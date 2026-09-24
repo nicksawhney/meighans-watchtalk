@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 
+import ContactModal from '../components/ContactModal.astro';
 import Masthead from '../components/Masthead.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Ticker from '../components/Ticker.astro';
@@ -61,5 +62,6 @@ const {
 		<Masthead active={active} />
 		<slot />
 		<SiteFooter />
+		<ContactModal />
 	</body>
 </html>

@@ -29,7 +29,7 @@ const today = new Date().toLocaleDateString('en-GB', {
 // Publish) and a section filter. With Portfolio and Publish gone there is only
 // one page, so the section filter takes over the nav slot rather than leaving
 // two near-identical bars. Each section is a real static route.
-const nav: { href: string; label: string; key?: NavKey }[] = [
+const nav: { href: string; label: string; key?: NavKey; contact?: boolean }[] = [
 	{ href: '/', label: 'Home', key: 'all' },
 	// Sits beside Home rather than after the sections. Hidden until the
 	// singleton is published, so the nav never points at an empty page.
@@ -43,8 +43,10 @@ const nav: { href: string; label: string; key?: NavKey }[] = [
 			label: SECTION_LABELS[s],
 			key: s as NavKey,
 		})),
-	// Call to action. No key — a mailto is never the "current page".
-	{ href: `mailto:${CONTACT_EMAIL}`, label: 'Contact me' },
+	// Call to action. No key — a mailto is never the "current page". The href
+	// stays a mailto so it still works without JS; ContactModal intercepts the
+	// click and opens the dialog instead.
+	{ href: `mailto:${CONTACT_EMAIL}`, label: 'Contact me', contact: true },
 ];
 ---
 
@@ -72,6 +74,7 @@ const nav: { href: string; label: string; key?: NavKey }[] = [
 					href={item.href}
 					class:list={['masthead__navlink', { 'is-active': active === item.key }]}
 					aria-current={active === item.key ? 'page' : undefined}
+					data-contact-trigger={item.contact ? '' : undefined}
 				>
 					{item.label}
 				</a>
