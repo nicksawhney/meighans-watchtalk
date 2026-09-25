@@ -45,6 +45,7 @@ const year = new Date().getFullYear();
 
 		<div class="footer__baseline">
 			<span>© {year} Meighan's Watchtalk</span>
+			<span class="footer__credit">Built by Nick Sawhney</span>
 			<span>All pieces the property of their authors</span>
 		</div>
 	</div>
@@ -126,6 +127,12 @@ const year = new Date().getFullYear();
 		border-bottom: 2px solid var(--primary);
 		/* Long address on a narrow screen must break rather than overflow. */
 		word-break: break-all;
+	}
+
+	/* Build credit. Inherits the baseline's 10px mono in --border, the palest
+	   colour in the palette, so it reads as a colophon rather than a feature. */
+	.footer__credit {
+		white-space: nowrap;
 	}
 
 	.footer__baseline {
