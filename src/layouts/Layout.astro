@@ -1,10 +1,14 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import Analytics from '@vercel/analytics/astro';
 
 import ContactModal from '../components/ContactModal.astro';
 import Masthead from '../components/Masthead.astro';
+import Seo from '../components/Seo.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Ticker from '../components/Ticker.astro';
+import { fallbackSeo, type SeoData } from '../lib/seo';
+import { LOCALE, SITE_TAGLINE } from '../lib/site';
 import type { NavKey } from '../sanity/lib/queries';
 
 import '../styles/global.css';
@@ -13,17 +17,23 @@ interface Props {
 	title: string;
 	description?: string;
 	active: NavKey;
+	/** Full SEO record from src/lib/seo.ts. Optional so a page can still be
+	 *  written with just a title; it then gets canonical and OpenGraph tags
+	 *  derived from its own URL rather than none at all. */
+	seo?: SeoData;
 }
 
-const {
-	title,
-	description = 'A journal of watches, makers, and the people who love them.',
-	active,
-} = Astro.props;
+const { title, description = SITE_TAGLINE, active, seo } = Astro.props;
+
+const seoData = seo ?? fallbackSeo(title, description, Astro.url.pathname);
+
+// BCP 47 form of LOCALE, so the document language matches both the og:locale
+// tag and the en-GB dates that formatDate produces.
+const lang = LOCALE.replace('_', '-');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -31,11 +41,7 @@ const {
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 
-		<title>{title}</title>
-		<meta name="description" content={description} />
-		<meta property="og:title" content={title} />
-		<meta property="og:description" content={description} />
-		<meta property="og:type" content="website" />
+		<Seo seo={seoData} />
 
 		{/* Preloaded so the first paint already has them — swap flash is the
 		    main source of layout shift on a type-led design like this. */}
@@ -54,6 +60,12 @@ const {
 			crossorigin
 		/>
 		<link rel="preload" href="/fonts/courier-400.woff2" as="font" type="font/woff2" crossorigin />
+
+		{/* Renders a <vercel-analytics> custom element whose constructor fires the
+		    pageview. ClientRouter swaps it on every navigation (its data-pathname
+		    differs per page), so the constructor re-runs and each route is counted
+		    once — no astro:page-load hook, which would double-count. */}
+		<Analytics />
 
 		<ClientRouter />
 	</head>

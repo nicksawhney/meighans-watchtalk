@@ -3,16 +3,20 @@ import { PortableText } from 'astro-portabletext';
 
 import PortableImage from '../../components/PortableImage.astro';
 import Layout from '../../layouts/Layout.astro';
-import { formatDate, plainTextExcerpt } from '../../lib/format';
+import { formatDate } from '../../lib/format';
+import { postSeo } from '../../lib/seo';
 import { urlFor } from '../../sanity/lib/image';
-import { SECTION_LABELS, getPost, getPosts } from '../../sanity/lib/queries';
+import { SECTION_LABELS, getPost, getPosts, type PostSummary } from '../../sanity/lib/queries';
 
 export async function getStaticPaths() {
 	const posts = await getPosts();
-	return posts.map((post) => ({ params: { slug: post.slug } }));
+	// The full list rides along as a prop so the share-image fallback can reach
+	// the lead post's cover without refetching once per post page.
+	return posts.map((post) => ({ params: { slug: post.slug }, props: { posts } }));
 }
 
 const { slug } = Astro.params;
+const { posts } = Astro.props as { posts: PostSummary[] };
 const post = await getPost(slug!);
 
 // getStaticPaths only emits slugs that exist, so this is a build-time invariant.
@@ -22,11 +26,11 @@ const cover = post.coverImage?.asset
 	? urlFor(post.coverImage).width(1600).height(900).fit('crop').auto('format').url()
 	: null;
 
-const description = plainTextExcerpt(post.subheadline ?? post.excerpt, 160) ?? undefined;
+const seo = postSeo(post, posts);
 const components = { type: { image: PortableImage } };
 ---
 
-<Layout title={`${post.title} — Meighan's Watchtalk`} description={description} active={post.section}>
+<Layout title={seo.title} description={seo.description} active={post.section} seo={seo}>
 	<main class="article-shell">
 		<article class="article" data-article>
 			<div class="article__eyebrow">

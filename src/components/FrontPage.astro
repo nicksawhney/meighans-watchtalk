@@ -28,8 +28,11 @@ const leadIsFullWidth = column.length === 0;
 ---
 
 <main class="front">
+	{/* The h1 for / and the section routes — both pages had none at all, which
+	    left the card <h2>s as the first heading on the page. Styled to render
+	    identically to the span it replaced; see the reset below. */}
 	<div class="rule-heading front__heading">
-		<span class="label">{heading}</span>
+		<h1 class="label">{heading}</h1>
 	</div>
 
 	{
@@ -89,6 +92,11 @@ const leadIsFullWidth = column.length === 0;
 	.front__heading .label {
 		letter-spacing: 0.4em;
 		font-size: var(--text-label-md);
+		/* This is an h1, and the global reset only sets box-sizing — without
+		   these it would pick up the UA margin and bold weight and no longer
+		   match the Figma source. */
+		margin: 0;
+		font-weight: 400;
 	}
 
 	.front__empty {

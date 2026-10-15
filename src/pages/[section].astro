@@ -1,6 +1,7 @@
 ---
 import FrontPage from '../components/FrontPage.astro';
 import Layout from '../layouts/Layout.astro';
+import { sectionSeo } from '../lib/seo';
 import { SECTION_LABELS, getPosts, type Section } from '../sanity/lib/queries';
 
 // Section pages are real static routes rather than a client-side filter: they
@@ -16,12 +17,9 @@ const section = Astro.params.section as Section;
 const label = SECTION_LABELS[section];
 
 const posts = (await getPosts()).filter((post) => post.section === section);
+const seo = sectionSeo(section, posts);
 ---
 
-<Layout
-	title={`${label} — Meighan's Watchtalk`}
-	description={`${label} from Meighan's Watchtalk.`}
-	active={section}
->
+<Layout title={seo.title} description={seo.description} active={section} seo={seo}>
 	<FrontPage posts={posts} heading={label} />
 </Layout>

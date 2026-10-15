@@ -1,13 +1,18 @@
 ---
 import { SECTION_LABELS, sectionsWithPosts, type Section } from '../sanity/lib/queries';
 
-import { CONTACT_EMAIL } from '../lib/site';
+import { CONTACT_EMAIL, CREDIT_NAME, CREDIT_URL, SOCIAL_PROFILES } from '../lib/site';
 
 // Contact appears both here and as the masthead CTA — same address, one
 // constant. Empty sections are filtered out here too, matching the nav.
 const liveSections = await sectionsWithPosts();
 const sections = (Object.keys(SECTION_LABELS) as Section[]).filter((s) => liveSections.has(s));
 const year = new Date().getFullYear();
+
+// `rel="me"` is the visible half of the Person.sameAs claim in the JSON-LD —
+// a crawler sees the same name-to-profile pairing in markup and in content.
+const [instagram] = SOCIAL_PROFILES;
+const instagramHandle = instagram?.replace(/\/$/, '').split('/').pop();
 ---
 
 <footer class="footer">
@@ -40,12 +45,30 @@ const year = new Date().getFullYear();
 					Pitches, corrections, and strong opinions about movements are all welcome.
 				</p>
 				<a class="footer__mailto" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL} →</a>
+				{
+					instagram && (
+						<a class="footer__mailto" href={instagram} rel="me noopener">
+							@{instagramHandle} on Instagram →
+						</a>
+					)
+				}
 			</div>
 		</div>
 
 		<div class="footer__baseline">
 			<span>© {year} Meighan's Watchtalk</span>
-			<span class="footer__credit">Built by Nick Sawhney</span>
+			<span class="footer__credit">
+				Built by{' '}
+				{
+					CREDIT_URL ? (
+						<a href={CREDIT_URL} rel="noopener">
+							{CREDIT_NAME}
+						</a>
+					) : (
+						CREDIT_NAME
+					)
+				}
+			</span>
 			<span>All pieces the property of their authors</span>
 		</div>
 	</div>
@@ -116,7 +139,10 @@ const year = new Date().getFullYear();
 	}
 
 	.footer__mailto {
-		display: inline-block;
+		/* Block so the email and Instagram links stack rather than running
+		   together on one line; fit-content keeps the underline tight to the text. */
+		display: block;
+		width: fit-content;
 		margin-top: 0.75rem;
 		font-family: var(--font-mono);
 		font-size: var(--text-label-md);
@@ -133,6 +159,19 @@ const year = new Date().getFullYear();
 	   colour in the palette, so it reads as a colophon rather than a feature. */
 	.footer__credit {
 		white-space: nowrap;
+	}
+
+	/* Inherits the baseline's muted colour so the credit reads as a credit, not
+	   as a call to action — it only needs to be followable, not loud. */
+	.footer__credit a {
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.footer__credit a:hover {
+		color: var(--muted-foreground);
+		border-bottom-color: var(--muted-foreground);
 	}
 
 	.footer__baseline {

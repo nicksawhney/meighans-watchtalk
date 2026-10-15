@@ -3,21 +3,25 @@ import { PortableText } from 'astro-portabletext';
 
 import PortableImage from '../components/PortableImage.astro';
 import Layout from '../layouts/Layout.astro';
-import { plainTextExcerpt } from '../lib/format';
+import { profileSeo } from '../lib/seo';
+import { AUTHOR_NAME, SOCIAL_PROFILES } from '../lib/site';
 import { urlFor } from '../sanity/lib/image';
-import { getProfile } from '../sanity/lib/queries';
+import { getPosts, getProfile } from '../sanity/lib/queries';
 
-const profile = await getProfile();
+const [profile, posts] = await Promise.all([getProfile(), getPosts()]);
 
 const portrait = profile?.portrait?.asset
 	? urlFor(profile.portrait).width(720).height(720).fit('crop').auto('format').url()
 	: null;
 
-const description = plainTextExcerpt(profile?.tagline, 160) ?? undefined;
+const seo = profileSeo(profile, posts);
 const components = { type: { image: PortableImage } };
+
+const [instagram] = SOCIAL_PROFILES;
+const instagramHandle = instagram?.replace(/\/$/, '').split('/').pop();
 ---
 
-<Layout title={`Profile — Meighan's Watchtalk`} description={description} active="profile">
+<Layout title={seo.title} description={seo.description} active="profile" seo={seo}>
 	<main class="profile">
 		<div class="rule-heading profile__kicker">
 			<span class="label">About the writer</span>
@@ -25,7 +29,12 @@ const components = { type: { image: PortableImage } };
 
 		{
 			!profile ? (
-				<p class="profile__empty">The profile has not been published yet.</p>
+				<>
+					{/* Still needs an h1: the page is reachable and indexable even
+					    before the singleton is published. */}
+					<h1 class="profile__name">{AUTHOR_NAME}</h1>
+					<p class="profile__empty">The profile has not been published yet.</p>
+				</>
 			) : (
 				<div class="profile__grid">
 					<aside class="profile__aside">
@@ -41,6 +50,14 @@ const components = { type: { image: PortableImage } };
 							</figure>
 						)}
 						<div class="profile__stamp stamp-label">✦ Editor &amp; sole correspondent</div>
+						{/* This page is the entity hub — the page Google should tie to
+						    the name — so the link out belongs here as well as in the
+						    footer. */}
+						{instagram && (
+							<a class="profile__social" href={instagram} rel="me noopener">
+								@{instagramHandle} on Instagram →
+							</a>
+						)}
 					</aside>
 
 					<div class="profile__main">
@@ -117,6 +134,25 @@ const components = { type: { image: PortableImage } };
 
 	.profile__stamp {
 		font-size: var(--text-label-xs);
+	}
+
+	/* Deliberately quieter than the rotated stamp above it — the stamp is the
+	   flourish, this is just a link. */
+	.profile__social {
+		display: block;
+		width: fit-content;
+		margin-top: 1rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-label-sm);
+		letter-spacing: 0.1em;
+		text-decoration: none;
+		color: var(--muted-foreground);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.profile__social:hover {
+		color: var(--primary);
+		border-bottom-color: var(--primary);
 	}
 
 	.profile__name {

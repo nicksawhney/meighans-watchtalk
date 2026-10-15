@@ -1,0 +1,108 @@
+---
+import { plainTextExcerpt } from '../lib/format';
+import { absoluteUrl, buildGraph, serializeGraph } from '../lib/schema';
+import type { SeoData } from '../lib/seo';
+import { AUTHOR_NAME, LOCALE, SITE_NAME, SITE_URL } from '../lib/site';
+import { urlFor } from '../sanity/lib/image';
+import { getPersonFacts } from '../sanity/lib/queries';
+
+interface Props {
+	seo: SeoData;
+}
+
+const { seo } = Astro.props;
+
+// astro.config.mjs cannot import src/lib/site.ts (it is .mjs, and Node loads it
+// before Vite), so the origin is written in both places. Fail the build rather
+// than silently shipping canonicals that point at the wrong host.
+if (import.meta.env.PROD && Astro.site?.origin !== SITE_URL) {
+	throw new Error(
+		`Origin mismatch: astro.config.mjs has ${Astro.site?.origin}, src/lib/site.ts has ${SITE_URL}`,
+	);
+}
+
+const canonical = absoluteUrl(seo.canonicalPath);
+
+// The Person node is emitted on every page, so this runs on every page. It is
+// a deliberately narrow projection; Masthead already makes a comparable
+// per-page call, so the pattern is established.
+const person = await getPersonFacts();
+const portraitUrl = person?.portrait?.asset
+	? urlFor(person.portrait).width(800).height(800).fit('crop').format('jpg').url()
+	: null;
+
+const graph = buildGraph(
+	{
+		name: person?.name ?? AUTHOR_NAME,
+		description: plainTextExcerpt(person?.tagline, 300),
+		portraitUrl,
+	},
+	seo.jsonLd,
+);
+
+const robots = seo.noindex
+	? 'noindex,nofollow'
+	: 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+
+const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
+---
+
+<title>{seo.title}</title>
+<meta name="description" content={seo.description} />
+<link rel="canonical" href={canonical} />
+<meta name="robots" content={robots} />
+
+<meta property="og:type" content={seo.ogType} />
+<meta property="og:title" content={seo.title} />
+<meta property="og:description" content={seo.description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={SITE_NAME} />
+<meta property="og:locale" content={LOCALE} />
+
+{
+	seo.image && (
+		<>
+			<meta property="og:image" content={seo.image.url} />
+			<meta property="og:image:alt" content={seo.image.alt} />
+			<meta property="og:image:width" content={String(seo.image.width)} />
+			<meta property="og:image:height" content={String(seo.image.height)} />
+			<meta property="og:image:type" content="image/jpeg" />
+		</>
+	)
+}
+
+{
+	seo.article && (
+		<>
+			<meta property="article:published_time" content={seo.article.publishedTime} />
+			<meta property="article:modified_time" content={seo.article.modifiedTime} />
+			<meta property="article:section" content={seo.article.section} />
+			<meta property="article:author" content={seo.article.author} />
+		</>
+	)
+}
+
+{/* summary_large_image needs an image to be large about; without one it renders
+    as an empty box, so fall back to the compact card. */}
+<meta name="twitter:card" content={seo.image ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={seo.title} />
+<meta name="twitter:description" content={seo.description} />
+{
+	seo.image && (
+		<>
+			<meta name="twitter:image" content={seo.image.url} />
+			<meta name="twitter:image:alt" content={seo.image.alt} />
+		</>
+	)
+}
+
+<meta name="theme-color" content="#faf8f3" />
+<link rel="alternate" type="application/rss+xml" title={SITE_NAME} href="/rss.xml" />
+
+{
+	googleVerification && (
+		<meta name="google-site-verification" content={googleVerification} />
+	)
+}
+
+<script type="application/ld+json" is:inline set:html={serializeGraph(graph)} />

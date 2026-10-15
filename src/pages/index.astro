@@ -1,11 +1,13 @@
 ---
 import FrontPage from '../components/FrontPage.astro';
 import Layout from '../layouts/Layout.astro';
+import { homeSeo } from '../lib/seo';
 import { getPosts } from '../sanity/lib/queries';
 
 const posts = await getPosts();
+const seo = homeSeo(posts);
 ---
 
-<Layout title="Meighan's Watchtalk" active="all">
+<Layout title={seo.title} description={seo.description} active="all" seo={seo}>
 	<FrontPage posts={posts} heading="Today's Edition" emptyMessage="Nothing filed yet." />
 </Layout>

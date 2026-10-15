@@ -23,6 +23,10 @@ export type NavKey = Section | 'all' | 'profile'
 
 export interface PostSummary {
   _id: string
+  /** Sanity system field. Drives sitemap `lastmod` and JSON-LD `dateModified`.
+   *  Note it bumps on any publish, including a typo fix, and that the site is
+   *  static — so it is only ever as fresh as the last Vercel build. */
+  _updatedAt: string
   title: string
   subheadline: string | null
   slug: string
@@ -43,6 +47,7 @@ export interface Post extends PostSummary {
 // before those fields existed have neither.
 const POST_FIELDS = /* groq */ `
   _id,
+  _updatedAt,
   title,
   subheadline,
   "slug": slug.current,
@@ -80,6 +85,7 @@ export function getPost(slug: string): Promise<Post | null> {
 }
 
 export interface Profile {
+  _updatedAt: string
   name: string
   tagline: string | null
   portrait: SanityImage | null
@@ -89,6 +95,7 @@ export interface Profile {
 // Singleton, so it is fetched by its pinned id rather than by ordering a list.
 const PROFILE_QUERY = defineQuery(`
   *[_id == "profile"][0] {
+    _updatedAt,
     name,
     tagline,
     portrait,
@@ -99,6 +106,31 @@ const PROFILE_QUERY = defineQuery(`
 /** Returns null until the profile document is published in the Studio. */
 export function getProfile(): Promise<Profile | null> {
   return sanityClient.fetch<Profile | null>(PROFILE_QUERY)
+}
+
+/** The subset of the profile that the sitewide schema.org Person node needs.
+ *  Deliberately narrower than PROFILE_QUERY: this runs on every page, so it
+ *  skips the Portable Text body. */
+export interface PersonFacts {
+  name: string
+  tagline: string | null
+  portrait: SanityImage | null
+}
+
+const PERSON_QUERY = defineQuery(`
+  *[_id == "profile"][0] {
+    name,
+    tagline,
+    portrait
+  }
+`)
+
+/**
+ * Feeds the Person node that every page emits. Null until the profile is
+ * published, in which case the node falls back to the AUTHOR_NAME constant.
+ */
+export function getPersonFacts(): Promise<PersonFacts | null> {
+  return sanityClient.fetch<PersonFacts | null>(PERSON_QUERY)
 }
 
 const POST_SECTIONS_QUERY = defineQuery(`

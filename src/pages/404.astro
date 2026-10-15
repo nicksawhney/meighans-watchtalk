@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { notFoundSeo } from '../lib/seo';
+import { SECTION_LABELS, sectionsWithPosts, type Section } from '../sanity/lib/queries';
+
+// The Vercel adapter routes every unmatched request to /404.html, which did not
+// exist until this file did.
+const liveSections = await sectionsWithPosts();
+const sections = (Object.keys(SECTION_LABELS) as Section[]).filter((s) => liveSections.has(s));
+
+const seo = notFoundSeo();
+---
+
+<Layout title={seo.title} description={seo.description} active="all" seo={seo}>
+	<main class="notfound">
+		<div class="rule-heading notfound__kicker">
+			<span class="label">Error 404</span>
+		</div>
+
+		<h1 class="notfound__title">No such dispatch</h1>
+		<p class="notfound__body">
+			That page has either moved or never went to print. Try the front page, or one of the
+			sections below.
+		</p>
+
+		<nav class="notfound__links" aria-label="Elsewhere on the site">
+			<a href="/">Front page</a>
+			{sections.map((section) => <a href={`/${section}`}>{SECTION_LABELS[section]}</a>)}
+		</nav>
+	</main>
+</Layout>
+
+<style>
+	.notfound {
+		position: relative;
+		z-index: 1;
+		max-width: 46rem;
+		margin: 0 auto;
+		padding: 3.5rem 1rem 5rem;
+		text-align: center;
+	}
+
+	.notfound__kicker {
+		margin-bottom: 1.5rem;
+	}
+
+	.notfound__kicker .label {
+		letter-spacing: 0.4em;
+		color: var(--primary);
+	}
+
+	.notfound__title {
+		margin: 0 0 0.75rem;
+		font-family: var(--font-display);
+		font-weight: 900;
+		font-size: clamp(1.75rem, 5vw, 2.5rem);
+		line-height: 1.15;
+	}
+
+	.notfound__body {
+		margin: 0 auto 2rem;
+		max-width: 32rem;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: 1.125rem;
+		line-height: 1.5;
+		color: var(--muted-foreground);
+	}
+
+	.notfound__links {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1.5rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.notfound__links a {
+		font-family: var(--font-mono);
+		font-size: var(--text-label-md);
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--muted-foreground);
+	}
+
+	.notfound__links a:hover {
+		color: var(--primary);
+	}
+</style>
